@@ -112,6 +112,7 @@ describe UnixSocks::Server do
     it 'runs the receiver in a background thread' do
       expect(Thread).to receive(:new).and_yield
       expect(FileUtils).to receive(:rm_f).with(server.server_socket_path)
+      expect(server).to receive(:at_exit) { |&block| block.call }
       expect(server).to receive(:receive).with(force: true)
 
       server.receive_in_background(force: true)

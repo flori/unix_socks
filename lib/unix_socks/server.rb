@@ -92,7 +92,7 @@ class UnixSocks::Server
     Thread.new do
       receive(force:, &block)
     ensure
-      remove_socket_path
+      at_exit { remove_socket_path }
     end
   end
 
