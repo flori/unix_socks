@@ -22,6 +22,18 @@ class UnixSocks::Server
   #
   # @return [ String ] The default runtime directory path.
   def default_runtime_dir
+    self.class.default_runtime_dir
+  end
+
+  # Returns the default runtime directory path based on the XDG_RUNTIME_DIR
+  # environment variable.
+  #
+  # If the XDG_RUNTIME_DIR environment variable is set, its value is used as
+  # the runtime directory path.
+  # Otherwise, the default path '~/.local/run' is returned.
+  #
+  # @return [ String ] The default runtime directory path.
+  def self.default_runtime_dir
     File.expand_path(ENV.fetch('XDG_RUNTIME_DIR',  '~/.local/run'))
   end
 

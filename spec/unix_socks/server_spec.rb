@@ -23,6 +23,16 @@ describe UnixSocks::Server do
     end
   end
 
+  describe '.default_runtime_dir' do
+    it 'returns the correct default runtime directory' do
+      ENV['XDG_RUNTIME_DIR'] = nil
+      expect(described_class.default_runtime_dir).to eq(File.expand_path('~/.local/run'))
+
+      ENV['XDG_RUNTIME_DIR'] = '/tmp/runtime'
+      expect(described_class.default_runtime_dir).to eq('/tmp/runtime')
+    end
+  end
+
   describe '#server_socket_path' do
     it 'returns the correct socket path' do
       expected_path = File.expand_path(File.join(runtime_dir, socket_name))
