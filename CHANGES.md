@@ -1,5 +1,10 @@
 # Changes
 
+## 2025-09-07 v0.1.0
+
+- Introduced `UnixSocks::Server.default_runtime_dir` class method
+- Simplified coverage configuration by using `GemHadar::SimpleCov.start`
+
 ## 2025-07-13 v0.0.1
 
 * Modify server to use `at_exit` for socket cleanup:
