@@ -1,5 +1,22 @@
 # Changes
 
+## 2025-12-20 v0.2.0
+
+- Updated `required_ruby_version` from `~> 3.1` to `>= 3.1` in `Rakefile` and
+  `unix_socks.gemspec` to allow installation on Ruby **3.1** and higher
+  versions
+- Updated `rubygems` version from **3.6.9** to **4.0.2** in
+  `unix_socks.gemspec`
+- Updated `gem_hadar` development dependency from ~> **2.2** to ~> **2.10** in
+  `unix_socks.gemspec`
+- Added `openssl-dev` package to the Dockerfile for building
+- Updated `bundle` command to `bundle update --all` and added `bundle install
+  --jobs=$(getconf _NPROCESSORS_ONLN)` for parallel installation
+- Added `fail_fast: true` option to the configuration
+- Added `ruby:4.0-rc-alpine` image to the test matrix
+- Installed `bundler` and `gem_hadar` gems using `gem install` in the
+  Dockerfile
+
 ## 2025-09-07 v0.1.0
 
 - Introduced `UnixSocks::Server.default_runtime_dir` class method
