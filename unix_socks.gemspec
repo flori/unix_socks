@@ -17,13 +17,13 @@ Gem::Specification.new do |s|
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--title".freeze, "UnixSocks - A Ruby library for inter-process communication via Unix sockets with\ndynamic message handling\n".freeze, "--main".freeze, "README.md".freeze]
   s.required_ruby_version = Gem::Requirement.new("~> 3.1".freeze)
-  s.rubygems_version = "3.6.9".freeze
+  s.rubygems_version = "4.0.2".freeze
   s.summary = "A Ruby library for inter-process communication via Unix sockets with dynamic message handling".freeze
   s.test_files = ["spec/spec_helper.rb".freeze, "spec/unix_socks/message_spec.rb".freeze, "spec/unix_socks/server_spec.rb".freeze]
 
   s.specification_version = 4
 
-  s.add_development_dependency(%q<gem_hadar>.freeze, ["~> 2.2".freeze])
+  s.add_development_dependency(%q<gem_hadar>.freeze, ["~> 2.10".freeze])
   s.add_development_dependency(%q<all_images>.freeze, ["~> 0.4".freeze])
   s.add_development_dependency(%q<rspec>.freeze, ["~> 3.2".freeze])
   s.add_development_dependency(%q<debug>.freeze, [">= 0".freeze])
