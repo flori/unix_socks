@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/flori/unix_socks".freeze
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--title".freeze, "UnixSocks - A Ruby library for inter-process communication via Unix sockets with\ndynamic message handling\n".freeze, "--main".freeze, "README.md".freeze]
-  s.required_ruby_version = Gem::Requirement.new("~> 3.1".freeze)
+  s.required_ruby_version = Gem::Requirement.new(">= 3.1".freeze)
   s.rubygems_version = "4.0.2".freeze
   s.summary = "A Ruby library for inter-process communication via Unix sockets with dynamic message handling".freeze
   s.test_files = ["spec/spec_helper.rb".freeze, "spec/unix_socks/message_spec.rb".freeze, "spec/unix_socks/server_spec.rb".freeze]
