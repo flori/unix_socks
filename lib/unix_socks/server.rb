@@ -122,10 +122,35 @@ class UnixSocks::Server
 
   private
 
+  # Parses a JSON message from the socket and associates it with the socket
+  # connection
+  #
+  # This method retrieves a line of data from the socket, strips whitespace,
+  # and attempts to parse it as JSON. If successful, it creates a
+  # UnixSocks::Message object with the parsed data and assigns the socket
+  # connection to the message. If parsing fails, it logs a warning and
+  # returns nil.
+  #
+  # @param socket [ Socket ] the socket connection to read from
+  #
+  # @return [ UnixSocks::Message, nil ] the parsed message object or nil if parsing fails
   def pop_message(socket)
     parse_json_message(socket.gets, socket)
   end
 
+  # Parses a JSON message from the given data and associates it with the
+  # provided socket connection.
+  #
+  # This method processes the input data by stripping whitespace and attempting
+  # to parse it as JSON. If parsing is successful, it creates a
+  # UnixSocks::Message object with the parsed data and assigns the socket
+  # connection to the message. In case of a JSON parsing error, it
+  # logs a warning and returns nil.
+  #
+  # @param data [ String ] The raw data string to be parsed as JSON.
+  # @param socket [ Socket ] The socket connection associated with the message.
+  #
+  # @return [ UnixSocks::Message, nil ] The parsed message object or nil if parsing fails.
   def parse_json_message(data, socket)
     data = data.strip
     data.empty? and return nil
