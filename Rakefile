@@ -26,6 +26,10 @@ GemHadar do
     '.rspec', '.github'
   readme      'README.md'
 
+  changelog do
+    filename 'CHANGES.md'
+  end
+
   required_ruby_version  '>= 3.1'
 
   dependency             'json',        '~> 2.0'
