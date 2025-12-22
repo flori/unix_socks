@@ -98,7 +98,8 @@ class UnixSocks::Server
   # separate thread, allowing it to continue executing without blocking the
   # main program flow.
   #
-  # @param force [ Boolean ] Whether to overwrite any existing server socket file.
+  # @param force [ Boolean ] Whether to overwrite any existing server socket
+  #   file.
   # @yield [ UnixSocks::Message ] The received message.
   def receive_in_background(force: false, &block)
     Thread.new do
@@ -133,7 +134,8 @@ class UnixSocks::Server
   #
   # @param socket [ Socket ] the socket connection to read from
   #
-  # @return [ UnixSocks::Message, nil ] the parsed message object or nil if parsing fails
+  # @return [ UnixSocks::Message, nil ] the parsed message object or nil if
+  #   parsing fails
   def pop_message(socket)
     parse_json_message(socket.gets, socket)
   end
@@ -150,7 +152,8 @@ class UnixSocks::Server
   # @param data [ String ] The raw data string to be parsed as JSON.
   # @param socket [ Socket ] The socket connection associated with the message.
   #
-  # @return [ UnixSocks::Message, nil ] The parsed message object or nil if parsing fails.
+  # @return [ UnixSocks::Message, nil ] The parsed message object or nil if
+  #   parsing fails.
   def parse_json_message(data, socket)
     data = data.strip
     data.empty? and return nil
