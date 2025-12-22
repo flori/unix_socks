@@ -1,5 +1,18 @@
 # Changes
 
+## 2025-12-23 v0.2.1
+
+- Updated `receive_in_background` method to validate socket file existence
+  before thread creation and raise `Errno::EEXIST` in the calling thread
+  instead of the background thread
+- Added comprehensive test case for `receive_in_background` to verify proper
+  exception propagation when socket already exists
+- Enhanced documentation for `receive_in_background` method with clearer description and parameter details
+- Improved documentation line wrapping for UnixSocks server methods
+- Added detailed documentation for JSON message parsing and popping functionality
+- Added changelog generation support via `changelog` block in `Rakefile`
+- Updated `gem_hadar` development dependency from version **2.10** to **2.14**
+
 ## 2025-12-20 v0.2.0
 
 - Updated `required_ruby_version` from `~> 3.1` to `>= 3.1` in `Rakefile` and
