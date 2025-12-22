@@ -127,6 +127,18 @@ describe UnixSocks::Server do
 
       server.receive_in_background(force: true)
     end
+
+    it 'it raises Errno::EEXIST if socket already exists' do
+      expect(Thread).not_to receive(:new).and_yield
+      expect(FileUtils).not_to receive(:rm_f).with(server.server_socket_path)
+      expect(server).to receive(:socket_path_exist?).and_return true
+      expect(server).not_to receive(:at_exit)
+      expect(server).not_to receive(:receive).with(force: false)
+
+      expect {
+        server.receive_in_background(force: false)
+      }.to raise_error(Errno::EEXIST)
+    end
   end
 
   describe '#socket_path_exist?' do

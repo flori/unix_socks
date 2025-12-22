@@ -94,14 +94,21 @@ class UnixSocks::Server
     end
   end
 
-  # The receive_in_background method runs the server socket listener in a
-  # separate thread, allowing it to continue executing without blocking the
-  # main program flow.
+  # Runs the message receiver in a background thread to prevent blocking.
   #
-  # @param force [ Boolean ] Whether to overwrite any existing server socket
-  #   file.
-  # @yield [ UnixSocks::Message ] The received message.
+  # This method starts a new thread that continuously listens for incoming
+  # messages from connected clients. The server socket is created in the
+  # background, allowing the main execution flow to continue without
+  # waiting for messages.
+  #
+  # @param force [Boolean] Whether to overwrite any existing server socket file
+  # @yield [UnixSocks::Message] The received message
+  #
+  # @return [Thread] The background thread running the receiver
   def receive_in_background(force: false, &block)
+    if !force && socket_path_exist?
+      raise Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
+    end
     Thread.new do
       receive(force:, &block)
     ensure
