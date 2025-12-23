@@ -1,5 +1,23 @@
 # Changes
 
+## 2025-12-24 v0.3.0
+
+- Refactored socket server architecture by splitting `UnixSocks::Server` into
+  `UnixSocks::DomainSocketServer` and `UnixSocks::TCPSocketServer`
+- Added `UnixSocks::ServerShared` module to encapsulate common functionality
+  shared between socket server implementations
+- Implemented `to_url` method for both server types to generate `unix://path`
+  and `tcp://host:port` URLs
+- Introduced `UnixSocks::ServerError` marker module for consistent error
+  handling across the library
+- Updated all documentation and tests to reflect the new dual socket server
+  architecture
+- Maintained backward compatibility for core communication patterns
+- Added comprehensive test coverage for both `UnixSocks::DomainSocketServer`
+  and `UnixSocks::TCPSocketServer` implementations
+- Added `.rspec` file to configure RSpec with detailed output format (`--format
+  d`) for improved test output readability
+
 ## 2025-12-23 v0.2.3
 
 - Handle `Errno::ENOENT` errors in the background socket server thread to
