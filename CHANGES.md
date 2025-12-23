@@ -1,5 +1,9 @@
 # Changes
 
+## 2025-12-23 v0.2.2
+
+- Updated `gem_hadar` development dependency to version **2.15.0** or higher
+
 ## 2025-12-23 v0.2.1
 
 - Updated `receive_in_background` method to validate socket file existence
