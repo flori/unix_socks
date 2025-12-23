@@ -111,6 +111,7 @@ class UnixSocks::Server
     end
     Thread.new do
       receive(force:, &block)
+    rescue Errno::ENOENT
     ensure
       at_exit { remove_socket_path }
     end

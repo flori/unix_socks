@@ -139,6 +139,17 @@ describe UnixSocks::Server do
         server.receive_in_background(force: false)
       }.to raise_error(Errno::EEXIST)
     end
+
+    it 'runs the receiver in a background thread' do
+      expect(Thread).to receive(:new).and_yield
+      expect(FileUtils).to receive(:rm_f).with(server.server_socket_path)
+      expect(server).to receive(:at_exit) { |&block| block.call }
+      expect(server).to receive(:receive).and_raise Errno::ENOENT
+
+      expect {
+        server.receive_in_background(force: true)
+      }.not_to raise_error
+    end
   end
 
   describe '#socket_path_exist?' do
