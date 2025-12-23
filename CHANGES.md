@@ -1,5 +1,16 @@
 # Changes
 
+## 2025-12-23 v0.2.3
+
+- Handle `Errno::ENOENT` errors in the background socket server thread to
+  prevent crashes when socket files are removed or become inaccessible
+- Add test case to verify background thread execution and `ENOENT` error
+  handling
+- Maintain existing `at_exit` cleanup behavior to ensure socket file removal
+- Update `UnixSocks::Server` to be more resilient to temporary file system
+  conditions
+- Update `gem_hadar` development dependency to version **2.16.0**
+
 ## 2025-12-23 v0.2.2
 
 - Updated `gem_hadar` development dependency to version **2.15.0** or higher
