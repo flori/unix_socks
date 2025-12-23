@@ -7,7 +7,7 @@
 - Add test case to verify background thread execution and `ENOENT` error
   handling
 - Maintain existing `at_exit` cleanup behavior to ensure socket file removal
-- Update `UnixSocks::Server` to be more resilient to temporary file system
+- Update `UnixSocks::DomainSocketServer` to be more resilient to temporary file system
   conditions
 - Update `gem_hadar` development dependency to version **2.16.0**
 
@@ -47,7 +47,7 @@
 
 ## 2025-09-07 v0.1.0
 
-- Introduced `UnixSocks::Server.default_runtime_dir` class method
+- Introduced `UnixSocks::DomainSocketServer.default_runtime_dir` class method
 - Simplified coverage configuration by using `GemHadar::SimpleCov.start`
 
 ## 2025-07-13 v0.0.1

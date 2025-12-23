@@ -1,10 +1,12 @@
 require 'spec_helper'
 require 'tins/xt/expose'
 
-describe UnixSocks::Server do
+describe UnixSocks::DomainSocketServer do
   let(:socket_name) { 'test_socket' }
   let(:runtime_dir) { './tmp' }
-  let(:server) { UnixSocks::Server.new(socket_name: socket_name, runtime_dir: runtime_dir).expose }
+  let(:server) {
+    described_class.new(socket_name: socket_name, runtime_dir: runtime_dir).expose
+  }
 
   describe '#initialize' do
     it 'sets the socket name and runtime directory' do
@@ -46,8 +48,17 @@ describe UnixSocks::Server do
     it 'sends a message over the Unix socket' do
       expect(server).to receive(:mkdir_p).with(runtime_dir)
       expect(UNIXSocket).to receive(:new).with(server.server_socket_path).
-        and_return(double('socket', puts: nil, close: nil))
+        and_return(double('socket', puts: nil))
       server.transmit(message)
+    end
+
+    it 'sends a message over the Unix socket and close' do
+      expect(server).to receive(:mkdir_p).with(runtime_dir)
+      socket = double('socket', puts: nil)
+      expect(UNIXSocket).to receive(:new).with(server.server_socket_path).
+        and_return(socket)
+      expect(socket).to receive(:close)
+      server.transmit(message, close: true)
     end
   end
 
@@ -56,7 +67,12 @@ describe UnixSocks::Server do
 
     it 'parses a valid JSON response' do
       allow(server).to receive(:mkdir_p)
-      mock_socket = double('socket', puts: nil, gets: '{"status": "success"}')
+      mock_socket = double(
+        'socket',
+        puts: nil,
+        gets: '{"status": "success"}',
+        close: true
+      )
       expect(UNIXSocket).to receive(:new).and_return(mock_socket)
 
       response = server.transmit_with_response(message)
@@ -66,7 +82,12 @@ describe UnixSocks::Server do
 
     it 'handles JSON parsing errors' do
       allow(server).to receive(:mkdir_p)
-      mock_socket = double('socket', puts: nil, gets: 'invalid_json')
+      mock_socket = double(
+        'socket',
+        puts: nil,
+        gets: 'invalid_json',
+        close: true
+      )
       expect(server).to receive(:warn).
         with(/Caught JSON::ParserError: unexpected character: 'invalid_json'/)
       expect(UNIXSocket).to receive(:new).and_return(mock_socket)
@@ -77,7 +98,12 @@ describe UnixSocks::Server do
 
     it 'handles empty responses' do
       allow(server).to receive(:mkdir_p)
-      mock_socket = double('socket', puts: nil, gets: '')
+      mock_socket = double(
+        'socket',
+        puts: nil,
+        gets: '',
+        close: true
+      )
       expect(UNIXSocket).to receive(:new).and_return(mock_socket)
 
       response = server.transmit_with_response(message)
@@ -89,7 +115,7 @@ describe UnixSocks::Server do
     it 'raises an error if the socket already exists and force is false' do
       allow(server).to receive(:socket_path_exist?).and_return(true)
       expect { server.receive(force: false) }.to\
-        raise_error(Errno::EEXIST, /Path already exists/)
+        raise_error(UnixSocks::ServerError, /Path already exists/)
     end
 
     it 'does not raise an error if force is true' do
@@ -120,15 +146,15 @@ describe UnixSocks::Server do
 
   describe '#receive_in_background' do
     it 'runs the receiver in a background thread' do
-      expect(Thread).to receive(:new).and_yield
+      expect(Thread).to receive(:new).and_yield.and_return(double(join: true))
       expect(FileUtils).to receive(:rm_f).with(server.server_socket_path)
       expect(server).to receive(:at_exit) { |&block| block.call }
       expect(server).to receive(:receive).with(force: true)
 
-      server.receive_in_background(force: true)
+      server.receive_in_background(force: true).join
     end
 
-    it 'it raises Errno::EEXIST if socket already exists' do
+    it 'it raises UnixSocks::ServerError if socket already exists' do
       expect(Thread).not_to receive(:new).and_yield
       expect(FileUtils).not_to receive(:rm_f).with(server.server_socket_path)
       expect(server).to receive(:socket_path_exist?).and_return true
@@ -136,19 +162,25 @@ describe UnixSocks::Server do
       expect(server).not_to receive(:receive).with(force: false)
 
       expect {
-        server.receive_in_background(force: false)
-      }.to raise_error(Errno::EEXIST)
+        server.receive_in_background(force: false).join
+      }.to raise_error(UnixSocks::ServerError)
     end
 
-    it 'runs the receiver in a background thread' do
-      expect(Thread).to receive(:new).and_yield
+    it 'runs the receiver in a background thread ignoring existing sockets' do
+      expect(Thread).to receive(:new).and_yield.and_return(double(join: true))
       expect(FileUtils).to receive(:rm_f).with(server.server_socket_path)
       expect(server).to receive(:at_exit) { |&block| block.call }
       expect(server).to receive(:receive).and_raise Errno::ENOENT
 
       expect {
-        server.receive_in_background(force: true)
+        server.receive_in_background(force: true).join
       }.not_to raise_error
+    end
+  end
+
+  describe '#to_uri' do
+    it 'displays address' do
+      expect(server.to_url).to match %r(\Aunix://.*test_socket\z)
     end
   end
 

@@ -1,9 +1,10 @@
 # Manages Unix socket-based communication, providing both server and client
 # functionality.
-class UnixSocks::Server
+class UnixSocks::DomainSocketServer
   include FileUtils
+  include UnixSocks::ServerShared
 
-  # Initializes a new UnixSocks::Server instance.
+  # Initializes a new UnixSocks::DomainSocketServer instance.
   #
   # @param socket_name [ String ] The name of the server socket file.
   # @param runtime_dir [ String, nil ] The path to the runtime directory where
@@ -11,6 +12,17 @@ class UnixSocks::Server
   #   value returned by #default_runtime_dir.
   def initialize(socket_name:, runtime_dir: default_runtime_dir)
     @socket_name, @runtime_dir = socket_name, runtime_dir
+  end
+
+  # Returns the URL representation of the server socket configuration.
+  #
+  # This method constructs and returns a URL string in the format "unix://path"
+  # that represents the Unix socket server's file path
+  # configuration.
+  #
+  # @return [ String ] A URL string in the format "unix://path"
+  def to_url
+    "unix://#{server_socket_path}"
   end
 
   # Returns the default runtime directory path based on the XDG_RUNTIME_DIR
@@ -47,29 +59,23 @@ class UnixSocks::Server
     File.expand_path(File.join(@runtime_dir, @socket_name))
   end
 
-  # The transmit method sends a message over the Unix socket connection.
+  # The transmit method sends a message over the Unix socket connection
   #
-  # It first prepares the message by converting it to JSON format, and then
-  # establishes a connection to the server socket using UNIXSocket.new.
+  # This method prepares a message by converting it to JSON format, establishes
+  # a connection to the server socket using UNIXSocket.new, writes the
+  # prepared message to the socket, and then returns the created socket
   #
-  # Finally, it writes the prepared message to the socket using socket.puts,
-  # ensuring that the socket is properly closed after use.
+  # @param message [ Object ] The message to be sent over the Unix socket
+  # @param close [ TrueClass, FalseClass ] Whether to close the socket after sending
   #
-  # @param message [ Message ] The message to be sent over the Unix socket.
-  def transmit(message)
+  # @return [ UNIXSocket ] The socket connection that was used to transmit the message
+  def transmit(message, close: false)
     mkdir_p @runtime_dir
     socket = UNIXSocket.new(server_socket_path)
     socket.puts JSON(message)
     socket
-  end
-
-  # Sends a message and returns the parsed JSON response.
-  #
-  # @param message [Object] The message to be sent as JSON.
-  # @return [Hash, nil] The parsed JSON response or nil if parsing fails.
-  def transmit_with_response(message)
-    socket = transmit(message)
-    parse_json_message(socket.gets, socket)
+  ensure
+    close and socket.close
   end
 
   # Receives messages from clients connected to the server socket.
@@ -87,7 +93,9 @@ class UnixSocks::Server
   def receive(force: false, &block)
     mkdir_p @runtime_dir
     if !force && socket_path_exist?
-      raise Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
+      raise UnixSocks::ServerError.build(
+        Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
+      )
     end
     Socket.unix_server_loop(server_socket_path) do |socket, client_addrinfo|
       message = pop_message(socket) and block.(message)
@@ -107,7 +115,9 @@ class UnixSocks::Server
   # @return [Thread] The background thread running the receiver
   def receive_in_background(force: false, &block)
     if !force && socket_path_exist?
-      raise Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
+      raise UnixSocks::ServerError.build(
+        Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
+      )
     end
     Thread.new do
       receive(force:, &block)
@@ -127,48 +137,5 @@ class UnixSocks::Server
   # Safely removes the server socket file from the filesystem.
   def remove_socket_path
     FileUtils.rm_f server_socket_path
-  end
-
-  private
-
-  # Parses a JSON message from the socket and associates it with the socket
-  # connection
-  #
-  # This method retrieves a line of data from the socket, strips whitespace,
-  # and attempts to parse it as JSON. If successful, it creates a
-  # UnixSocks::Message object with the parsed data and assigns the socket
-  # connection to the message. If parsing fails, it logs a warning and
-  # returns nil.
-  #
-  # @param socket [ Socket ] the socket connection to read from
-  #
-  # @return [ UnixSocks::Message, nil ] the parsed message object or nil if
-  #   parsing fails
-  def pop_message(socket)
-    parse_json_message(socket.gets, socket)
-  end
-
-  # Parses a JSON message from the given data and associates it with the
-  # provided socket connection.
-  #
-  # This method processes the input data by stripping whitespace and attempting
-  # to parse it as JSON. If parsing is successful, it creates a
-  # UnixSocks::Message object with the parsed data and assigns the socket
-  # connection to the message. In case of a JSON parsing error, it
-  # logs a warning and returns nil.
-  #
-  # @param data [ String ] The raw data string to be parsed as JSON.
-  # @param socket [ Socket ] The socket connection associated with the message.
-  #
-  # @return [ UnixSocks::Message, nil ] The parsed message object or nil if
-  #   parsing fails.
-  def parse_json_message(data, socket)
-    data = data.strip
-    data.empty? and return nil
-    obj = JSON.parse(data, object_class: UnixSocks::Message)
-    obj.socket = socket
-    obj
-  rescue JSON::ParserError => e
-    warn "Caught #{e.class}: #{e} for #{data[0, 512].inspect}"
   end
 end
