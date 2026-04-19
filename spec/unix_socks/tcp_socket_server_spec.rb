@@ -73,7 +73,7 @@ describe UnixSocks::TCPSocketServer do
       )
       expect(TCPSocket).to receive(:new).and_return(socket)
 
-      response = server.transmit_with_response(message)
+      response = server.transmit_with_response(message) {}
       expect(response).to be nil
     end
   end
@@ -82,7 +82,7 @@ describe UnixSocks::TCPSocketServer do
     it 'does bind to hostname:port' do
       expect(Addrinfo).to receive(:tcp).with(server.hostname, server.port).
         and_return(double(bind: true))
-      server.receive
+      server.receive {}
     end
 
     it 'raises UnixSocks::ServerError if already bound' do
@@ -90,7 +90,7 @@ describe UnixSocks::TCPSocketServer do
       expect(Addrinfo).to receive(:tcp).with(server.hostname, server.port).
         and_return(socket)
       expect(socket).to receive(:bind).and_raise Errno::EADDRINUSE
-      expect { server.receive }.to raise_error(UnixSocks::ServerError)
+      expect { server.receive {} }.to raise_error(UnixSocks::ServerError)
     end
   end
 

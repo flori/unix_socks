@@ -58,7 +58,7 @@ class UnixSocks::TCPSocketServer
     socket.puts JSON(message)
     socket
   ensure
-    close and socket.close
+    close and socket&.close
   end
 
   # Receives messages from clients connected to the TCP socket.
@@ -75,6 +75,7 @@ class UnixSocks::TCPSocketServer
   #
   # @raise [ Errno::EADDRINUSE ] If the address is already in use.
   def receive(force: nil, &block)
+    block or raise ArgumentError, 'require &block argument to receive messages'
     Addrinfo.tcp(@hostname, @port).bind do |server|
       server.listen(1)
       loop do

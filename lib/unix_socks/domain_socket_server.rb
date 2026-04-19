@@ -75,7 +75,7 @@ class UnixSocks::DomainSocketServer
     socket.puts JSON(message)
     socket
   ensure
-    close and socket.close
+    close and socket&.close
   end
 
   # Receives messages from clients connected to the server socket.
@@ -90,16 +90,15 @@ class UnixSocks::DomainSocketServer
   #
   # @param force [ Boolean ] Whether to overwrite any existing server socket file.
   # @yield [ UnixSocks::Message ] The received message.
-  def receive(force: false, &block)
+  def receive(force: false, permission: 0600, &block)
+    block or raise ArgumentError, 'require &block argument to receive messages'
     mkdir_p @runtime_dir
     if !force && socket_path_exist?
       raise UnixSocks::ServerError.build(
         Errno::EEXIST, "Path already exists #{server_socket_path.inspect}"
       )
     end
-    Socket.unix_server_loop(server_socket_path) do |socket, client_addrinfo|
-      message = pop_message(socket) and block.(message)
-    end
+    loop_for_path(server_socket_path, permission:, &block)
   end
 
   # Runs the message receiver in a background thread to prevent blocking.
@@ -137,5 +136,41 @@ class UnixSocks::DomainSocketServer
   # Safely removes the server socket file from the filesystem.
   def remove_socket_path
     FileUtils.rm_f server_socket_path
+  end
+
+  private
+
+  def unix_socket_abstract_name?(path)
+    RUBY_PLATFORM.include?("linux") && (path.empty? || path.start_with?("\0"))
+  end
+
+  def loop_for_path(path, permission:, &block)
+    path = server_socket_path
+    unless unix_socket_abstract_name?(path)
+      begin
+        st = File.lstat(path)
+      rescue Errno::ENOENT
+      end
+      if st&.socket? && st.owned?
+        File.unlink path
+      end
+    end
+    begin
+      server = Addrinfo.unix(path).listen
+      File.chmod(permission, path)
+      loop do
+        readable, _, _ = IO.select([server])
+        readable.each do |r|
+          socket, _ = r.accept_nonblock(exception: false)
+          next if socket == :wait_readable
+          message = pop_message(socket) and block.(message)
+        end
+      end
+    ensure
+      server.close
+      unless unix_socket_abstract_name?(path)
+        File.unlink path
+      end
+    end
   end
 end

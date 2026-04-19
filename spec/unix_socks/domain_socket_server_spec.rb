@@ -114,14 +114,15 @@ describe UnixSocks::DomainSocketServer do
   describe '#receive' do
     it 'raises an error if the socket already exists and force is false' do
       allow(server).to receive(:socket_path_exist?).and_return(true)
-      expect { server.receive(force: false) }.to\
+      expect { server.receive(force: false) {} }.to\
         raise_error(UnixSocks::ServerError, /Path already exists/)
     end
 
     it 'does not raise an error if force is true' do
       allow(server).to receive(:socket_path_exist?).and_return(true)
-      expect(Socket).to receive(:unix_server_loop).with(server.server_socket_path)
-      server.receive(force: true)
+      expect(server).to receive(:loop_for_path).
+        with(server.server_socket_path, permission: 0600)
+      server.receive(force: true) {}
     end
   end
 

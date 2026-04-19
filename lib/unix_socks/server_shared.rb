@@ -12,7 +12,7 @@ module UnixSocks::ServerShared
     socket = transmit(message, close: false)
     parse_json_message(socket.gets, socket)
   ensure
-    close and socket.close
+    close and socket&.close
   end
 
   # Converts the server's URL representation into a URI object.
