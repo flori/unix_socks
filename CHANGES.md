@@ -1,5 +1,25 @@
 # Changes
 
+## 2026-04-19 v0.4.0
+
+- Implement secure permissions for Unix sockets using `File.chmod` with a
+  default value of `0600` in `UnixSocks::DomainSocketServer#receive`
+    - Refactor `UnixSocks::DomainSocketServer#receive` to use new private method
+      `loop_for_path` for socket lifecycle management
+    - Add guard clause to `UnixSocks::DomainSocketServer#receive` and
+      `UnixSocks::TCPSocketServer#receive` to ensure a block is provided
+    - Introduce `unix_socket_abstract_name?` method to handle Linux abstract
+      namespace sockets
+    - Use `IO.select` and `accept_nonblock` in server loop for better
+      responsiveness
+    - Update `transmit` and `transmit_with_response` to use safe navigation
+      `&.close` when closing sockets
+- Update gemspec versions and dependencies, including `rubygems_version` from
+  **4.0.2** to **4.0.10** and development dependency for `gem_hadar` from **>=
+  2.16.0** to **>= 2.17.0**
+- Update CI configuration to use stable Ruby **4.0** release instead of release
+  candidate
+
 ## 2025-12-24 v0.3.0
 
 - Refactored socket server architecture by splitting `UnixSocks::Server` into
