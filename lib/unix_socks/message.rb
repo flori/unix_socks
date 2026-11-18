@@ -1,5 +1,5 @@
 require 'tins/xt/ask_and_send'
-require 'json'
+require 'json/generic_object'
 
 # Represents a message sent or received over a Unix socket, extending
 # JSON::GenericObject for dynamic access to message attributes.
