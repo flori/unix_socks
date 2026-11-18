@@ -1,5 +1,24 @@
 # Changes
 
+## 2026-11-18 v0.5.0
+
+### Breaking
+
+- Relaxed the `json` runtime dependency constraint from `~> 2.0` to `>= 2.0`,
+  `< 4`.
+
+### Improvements
+
+- Added `json-generic_object` as a runtime dependency to ensure
+  `JSON::GenericObject` availability on `json` 3.x.
+- Updated `lib/unix_socks/message.rb` to require `json/generic_object` instead
+  of `json`.
+
+### Build & CI
+
+- Bumped the `gem_hadar` development dependency requirement to `>= 2.24.1`.
+- Removed Vim modeline comments from `Gemfile` and `Rakefile`.
+
 ## 2026-04-19 v0.4.0
 
 - Implement secure permissions for Unix sockets using `File.chmod` with a
